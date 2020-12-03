@@ -14,6 +14,12 @@ type Entry struct {
 	Num2 int
 }
 
+type EntryPart2 struct {
+	Num1 int
+	Num2 int
+	Num3 int
+}
+
 var input string
 
 func main() {
@@ -34,6 +40,10 @@ func main() {
 	if entry := find2020(nums); entry != nil {
 		fmt.Printf("%d * %d = %d\n", entry.Num1, entry.Num2, entry.Num1*entry.Num2)
 	}
+
+	if entry := find2020Part2(nums); entry != nil {
+		fmt.Printf("%d * %d * %d = %d\n", entry.Num1, entry.Num2, entry.Num3, entry.Num1*entry.Num2*entry.Num3)
+	}
 }
 
 func find2020(nums []int) *Entry {
@@ -45,6 +55,25 @@ func find2020(nums []int) *Entry {
 					Num2: j,
 				}
 			}
+		}
+	}
+	return nil
+}
+
+func find2020Part2(nums []int) *EntryPart2 {
+	// :D I'm lazy
+	for _, i := range nums {
+		for _, j := range nums {
+			for _, k := range nums {
+				if i+j+k == 2020 {
+					return &EntryPart2{
+						Num1: i,
+						Num2: j,
+						Num3: k,
+					}
+				}
+			}
+
 		}
 	}
 	return nil

@@ -26,7 +26,17 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println("Part one:")
 	fmt.Println(treesInPath(geology, 3, 1))
+
+	fmt.Println("Part two:")
+	fmt.Println(
+		treesInPath(geology, 1, 1) *
+			treesInPath(geology, 3, 1) *
+			treesInPath(geology, 5, 1) *
+			treesInPath(geology, 7, 1) *
+			treesInPath(geology, 1, 2),
+	)
 }
 
 func treesInPath(geology [][]string, stepX int, stepY int) (trees int) {

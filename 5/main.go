@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"sort"
 )
 
 var input string
@@ -27,6 +28,7 @@ func main() {
 	}
 
 	highest := 0
+	ids := []int{}
 	for _, pass := range passes {
 		row := findNum(pass[:len(pass)-3], 0, 127)
 		column := findNum(pass[len(pass)-3:], 0, 7)
@@ -35,8 +37,18 @@ func main() {
 		if id > highest {
 			highest = id
 		}
+		ids = append(ids, id)
 	}
 	fmt.Println(highest)
+
+	sort.Ints(ids)
+
+	for i, id := range ids {
+		if ids[i+1] != id+1 {
+			fmt.Println(id + 1)
+			return
+		}
+	}
 }
 
 func findNum(pass string, min, max float64) int {

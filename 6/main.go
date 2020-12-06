@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -25,19 +26,50 @@ func main() {
 	}
 
 	count := 0
+	count2 := 0
 	for _, line := range lines {
 		count += uniqueAnsers(line)
+		count2 += uniqueAnswersPart2(line)
 	}
-	fmt.Println(count)
+	fmt.Println("Part 1: ", count)
+	fmt.Println("Part 2: ", count2)
+
 }
 
 func uniqueAnsers(group string) int {
 	m := map[rune]struct{}{}
 	for _, s := range group {
+		if s == ',' {
+			continue
+		}
 		m[s] = struct{}{}
 	}
 
 	return len(m)
+}
+
+func uniqueAnswersPart2(group string) int {
+	g := strings.Split(group, ",")
+
+	m := map[rune]int{}
+	for _, s := range g {
+		for _, ss := range s {
+			if _, ok := m[ss]; !ok {
+				m[ss] = 1
+			} else {
+				m[ss]++
+			}
+		}
+	}
+
+	c := 0
+	for _, i := range m {
+		if i == len(g) {
+			c++
+		}
+	}
+
+	return c
 }
 
 func readFile(r io.Reader) ([]string, error) {
@@ -51,7 +83,11 @@ func readFile(r io.Reader) ([]string, error) {
 			group = ""
 		}
 
-		group += scanner.Text()
+		if group == "" {
+			group += scanner.Text()
+		} else {
+			group += "," + scanner.Text()
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err

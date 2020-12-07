@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -32,6 +33,56 @@ func main() {
 	}
 
 	fmt.Println(contains(m, "shiny gold"))
+
+	mPart2 := map[string]map[string]int{}
+	for _, line := range lines {
+		name, bags := bag(line)
+		mPart2[name] = bags
+	}
+
+	fmt.Println(containsPart2(mPart2, mPart2["shiny gold"]))
+}
+
+func bag(s string) (string, map[string]int) {
+	ss := strings.Split(s, " bags contain ")
+	name := ss[0]
+	m := map[string]int{}
+
+	for _, sss := range strings.Split(ss[1], ", ") {
+		if strings.Contains(sss, "no") {
+			continue
+		}
+
+		ssss := strings.Split(sss, " ")
+		n, err := strconv.Atoi(ssss[0])
+		if err != nil {
+			panic(err)
+		}
+
+		name := ssss[1] + " " + ssss[2]
+
+		m[name] = n
+	}
+
+	return name, m
+}
+
+func containedBagCount(bags map[string]int) int {
+	var c int
+	for _, n := range bags {
+		c += n
+	}
+	return c
+}
+
+func containsPart2(m map[string]map[string]int, containingBag map[string]int) int {
+	c := 0
+
+	for bag, count := range containingBag {
+		c += count * (1 + containsPart2(m, m[bag]))
+	}
+
+	return c
 }
 
 func contains(m map[string]string, s string) int {

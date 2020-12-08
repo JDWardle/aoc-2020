@@ -32,6 +32,36 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("Part 1:", acc)
+
+	acc, instructions, err := computePart2(lines)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, i := range instructions {
+		l := lines[i]
+		cmd := l[:3]
+
+		if cmd == "nop" {
+			lines[i] = strings.ReplaceAll(l, "nop", "jmp")
+		} else if cmd == "jmp" {
+			lines[i] = strings.ReplaceAll(l, "jmp", "nop")
+		} else {
+			continue
+		}
+		acc, _, err := computePart2(lines)
+		if err != nil {
+			panic(err)
+		}
+
+		if acc != -1 {
+			fmt.Printf("Modified line %d from '%s' to '%s'\n", i+1, l, lines[i])
+			fmt.Println("Part 2:", acc)
+			break
+		} else {
+			lines[i] = l
+		}
+	}
 }
 
 func compute(instructions []string) (accumulator int, err error) {
@@ -67,6 +97,44 @@ func compute(instructions []string) (accumulator int, err error) {
 
 		m[i] = struct{}{}
 		i++
+	}
+
+	return
+}
+
+func computePart2(instructions []string) (accumulator int, run []int, err error) {
+	m := map[int]struct{}{}
+
+	i := 0
+	for i < len(instructions) {
+		run = append(run, i)
+		if _, ok := m[i]; ok {
+			return -1, run, nil
+		}
+		m[i] = struct{}{}
+
+		cmd := instructions[i][:3]
+		v := instructions[i][4:]
+
+		switch cmd {
+		case "acc":
+			acc, err := strconv.Atoi(v)
+			if err != nil {
+				return 0, nil, err
+			}
+
+			accumulator += acc
+			i++
+		case "nop":
+			i++
+		case "jmp":
+			jmp, err := strconv.Atoi(v)
+			if err != nil {
+				return 0, nil, err
+			}
+
+			i += jmp
+		}
 	}
 
 	return

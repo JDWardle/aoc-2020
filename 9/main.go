@@ -28,13 +28,18 @@ func main() {
 		panic(err)
 	}
 
+	var n int
+
 	for i := preamble; i < len(lines); i++ {
 		_, _, ok := findSum(lines[i], lines[i-preamble:i])
 		if !ok {
-			fmt.Println(lines[i])
+			n = lines[i]
 			break
 		}
 	}
+
+	fmt.Println("Part 1:", n)
+	fmt.Println("Part 2:", findWeakness(n, lines))
 }
 
 func findSum(n int, nums []int) (int, int, bool) {
@@ -55,6 +60,40 @@ func findSum(n int, nums []int) (int, int, bool) {
 	}
 
 	return 0, 0, false
+}
+
+func sum(nums []int) (n int) {
+	for _, num := range nums {
+		n += num
+	}
+	return
+}
+
+func findWeakness(n int, nums []int) int {
+	l := 2
+
+	i := 0
+	for {
+		if l > 50 {
+			panic("too big?")
+		}
+
+		if i+l > len(nums) {
+			i = 0
+			l++
+			continue
+		}
+
+		if n == sum(nums[i:l+i]) {
+			ns := make([]int, l)
+			copy(ns, nums[i:l+i])
+
+			sort.Ints(ns)
+
+			return ns[0] + ns[len(ns)-1]
+		}
+		i++
+	}
 }
 
 func readFile(r io.Reader) ([]int, error) {

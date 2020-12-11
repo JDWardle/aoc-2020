@@ -25,26 +25,43 @@ func main() {
 		panic(err)
 	}
 
+	layoutPart1, changed := checkSeating(layout)
 	for {
-		var changed bool
-		layout, changed = checkSeating(layout)
+		layoutPart1, changed = checkSeating(layoutPart1)
 		if !changed {
 			break
 		}
 	}
 
 	occupied := 0
-	for row := range layout {
-		for col := range layout[row] {
-			if layout[row][col] == "#" {
+	for row := range layoutPart1 {
+		for col := range layoutPart1[row] {
+			if layoutPart1[row][col] == "#" {
 				occupied++
 			}
 		}
 	}
 
-	fmt.Println(occupied)
-	// newLayout, changed := checkSeating(layout)
-	// fmt.Println(changed)
+	fmt.Println("Part 1:", occupied)
+
+	layoutPart2, changed := checkSeatingPart2(layout)
+	for {
+		layoutPart2, changed = checkSeatingPart2(layoutPart2)
+		if !changed {
+			break
+		}
+	}
+
+	occupied = 0
+	for row := range layoutPart2 {
+		for col := range layoutPart2[row] {
+			if layoutPart2[row][col] == "#" {
+				occupied++
+			}
+		}
+	}
+
+	fmt.Println("Part 2:", occupied)
 
 }
 
@@ -122,6 +139,117 @@ func checkSeating(layout [][]string) ([][]string, bool) {
 				changed = true
 				newLayout[row][col] = "L"
 			} else if adjacentSeats == 0 && layout[row][col] == "L" {
+				changed = true
+				newLayout[row][col] = "#"
+			}
+		}
+	}
+
+	return newLayout, changed
+}
+
+func trace(dirRow, dirCol, startRow, startCol int, layout [][]string) bool {
+	row := startRow
+	col := startCol
+
+	for {
+		row += dirRow
+		col += dirCol
+
+		if row < 0 || col < 0 {
+			break
+		}
+
+		if row > len(layout)-1 || col > len(layout[row])-1 {
+			break
+		}
+
+		if layout[row][col] == "L" {
+			return false
+		}
+
+		if layout[row][col] == "#" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func checkSeatingPart2(layout [][]string) ([][]string, bool) {
+	changed := false
+	newLayout := make([][]string, len(layout))
+
+	for i := range layout {
+		newLayout[i] = make([]string, len(layout[i]))
+		copy(newLayout[i], layout[i])
+	}
+
+	for row := 0; row < len(layout); row++ {
+		topRow := row-1 >= 0
+		bottomRow := row+1 < len(layout)
+
+		for col := 0; col < len(layout[row]); col++ {
+			if layout[row][col] == "." {
+				continue
+			}
+
+			rightColumn := col+1 < len(layout[row])
+			leftColumn := col-1 >= 0
+			visibleSeats := 0
+
+			if topRow {
+				if trace(-1, 0, row, col, layout) {
+					visibleSeats++
+				}
+
+				if rightColumn {
+					if trace(-1, +1, row, col, layout) {
+						visibleSeats++
+					}
+				}
+
+				if leftColumn {
+					if trace(-1, -1, row, col, layout) {
+						visibleSeats++
+					}
+				}
+			}
+
+			if bottomRow {
+				if trace(+1, 0, row, col, layout) {
+					visibleSeats++
+				}
+
+				if rightColumn {
+					if trace(+1, +1, row, col, layout) {
+						visibleSeats++
+					}
+				}
+
+				if leftColumn {
+					if trace(+1, -1, row, col, layout) {
+						visibleSeats++
+					}
+				}
+			}
+
+			if rightColumn {
+				if trace(0, +1, row, col, layout) {
+					visibleSeats++
+				}
+			}
+
+			if leftColumn {
+				if trace(0, -1, row, col, layout) {
+					visibleSeats++
+				}
+			}
+
+			if visibleSeats >= 5 && layout[row][col] == "#" {
+				changed = true
+				newLayout[row][col] = "L"
+			} else if visibleSeats == 0 && layout[row][col] == "L" {
 				changed = true
 				newLayout[row][col] = "#"
 			}

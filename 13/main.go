@@ -27,7 +27,11 @@ func main() {
 		panic(err)
 	}
 
-	// schedules := map[int]int{}
+	fmt.Println("Part 1:", part1(time, buses))
+	fmt.Println("Part 2:", part2(buses))
+}
+
+func part1(time int, buses []string) int {
 	closest := 0
 	closestBus := 0
 	for _, bus := range buses {
@@ -41,18 +45,72 @@ func main() {
 		}
 
 		c := closestNumber(time, n)
-		fmt.Println(bus, c)
 		if closest == 0 || c < closest {
 			closestBus = n
 			closest = c
 		}
 	}
 
-	fmt.Println(closest)
-	fmt.Println(time)
-	fmt.Println(closestBus)
+	return (closest - time) * closestBus
+}
 
-	fmt.Println((closest - time) * closestBus)
+func parse64(s string) int64 {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return int64(i)
+}
+
+func part2(buses []string) int64 {
+	k := 0
+	busInts := make([]int64, len(buses))
+	for i, bus := range buses {
+		if bus != "x" {
+			k++
+			busInts[i] = parse64(bus)
+		}
+	}
+
+	t := busInts[0]
+
+	ms := map[int64]struct{}{
+		t: struct{}{},
+	}
+
+	for i := t; i < math.MaxInt64; i += t {
+		for offset, id := range busInts {
+			if id == 0 {
+				continue
+			}
+
+			if (i+int64(offset))%id != 0 {
+				break
+			}
+
+			if _, ok := ms[id]; !ok {
+				t = t * id
+
+				ms[id] = struct{}{}
+			}
+		}
+
+		if len(ms) == k {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func offset(time int64, m map[int64]int64) bool {
+	for i, v := range m {
+		if (time+i)%v != 0 {
+			return false
+		}
+	}
+
+	return true
 }
 
 func closestNumber(n, m int) int {

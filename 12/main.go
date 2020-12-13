@@ -74,6 +74,67 @@ func (s *Ship) Navigate(action string, units int) {
 	}
 }
 
+type ShipPart2 struct {
+	PosX      int
+	PosY      int
+	WaypointX int
+	WaypointY int
+}
+
+func NewShipPart2() *ShipPart2 {
+	return &ShipPart2{
+		WaypointX: 10,
+		WaypointY: 1,
+	}
+}
+
+func degreeToRad(deg int) float64 {
+	return float64(deg) * math.Pi / 180
+}
+
+func (s *ShipPart2) MoveTowardsWaypoint(units int) {
+	s.PosX += s.WaypointX * units
+	s.PosY += s.WaypointY * units
+}
+
+func (s *ShipPart2) Navigate(action string, units int) {
+	switch action {
+	case "N":
+		s.WaypointY += units
+	case "S":
+		s.WaypointY -= units
+	case "E":
+		s.WaypointX += units
+	case "W":
+		s.WaypointX -= units
+	case "L":
+		s.RotateWaypoint(units)
+	case "R":
+		s.RotateWaypoint(-units)
+	case "F":
+		s.MoveTowardsWaypoint(units)
+	}
+}
+
+func (s *ShipPart2) RotateWaypoint(deg int) {
+	rad := degreeToRad(deg)
+	sine := math.Sin(rad)
+	cos := math.Cos(rad)
+
+	x := float64(s.WaypointX)
+	y := float64(s.WaypointY)
+
+	s.WaypointX = int(math.Round(x*cos - y*sine))
+	s.WaypointY = int(math.Round(x*sine + y*cos))
+}
+
+func (s *ShipPart2) ManhattanDistance() int {
+	x, y := float64(s.PosX), float64(s.PosY)
+
+	dist := math.Abs(x) + math.Abs(y)
+	return int(dist)
+}
+
 func main() {
 	file := "input.txt"
 	if len(os.Args) > 1 {
@@ -95,7 +156,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Manhattan Distance:", s.ManhattanDistance())
+	fmt.Println("Manhattan Distance Part 1:", s.ManhattanDistance())
+
+	sh, err := navigatePart2(lines)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Manhattan Distance Part 2:", sh.ManhattanDistance())
 }
 
 func navigate(instructions []string) (*Ship, error) {
@@ -109,6 +176,22 @@ func navigate(instructions []string) (*Ship, error) {
 		ship.Navigate(action, units)
 
 		fmt.Printf("%s\tPos: %d,%d\t Dir: %d %s\n", instruction, ship.PosX, ship.PosY, ship.Dir, ship.Direction())
+	}
+
+	return ship, nil
+}
+
+func navigatePart2(instructions []string) (*ShipPart2, error) {
+	ship := NewShipPart2()
+	for _, instruction := range instructions {
+		action := instruction[:1]
+		units, err := strconv.Atoi(instruction[1:])
+		if err != nil {
+			return nil, err
+		}
+		ship.Navigate(action, units)
+
+		fmt.Printf("%s\tPos: %d,%d\tWpt: %d,%d\n", instruction, ship.PosX, ship.PosY, ship.WaypointX, ship.WaypointY)
 	}
 
 	return ship, nil

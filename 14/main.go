@@ -39,6 +39,110 @@ func main() {
 		c += v
 	}
 	fmt.Println(c)
+
+	mPart2 := map[uint64]int{}
+	for _, instruction := range program {
+		mask, err := NewMaskPart2(applyMask(instruction.Mask.s, uint64(instruction.Address)))
+		if err != nil {
+			panic(err)
+		}
+		for _, mask := range mask.bitMasks {
+			mPart2[mask] = instruction.Value
+		}
+	}
+
+	var cPart2 int
+
+	for _, v := range mPart2 {
+		cPart2 += v
+	}
+
+	fmt.Println(cPart2)
+}
+
+type MaskPart2 struct {
+	s       string
+	bitMask uint64
+
+	bitMasks []uint64
+}
+
+func applyMask(mask string, address uint64) string {
+	m := strings.ReplaceAll(mask, "X", "0")
+	bitMask, err := strconv.ParseUint(m, 2, 36)
+	if err != nil {
+		panic(err)
+	}
+
+	newMask := fmt.Sprintf("%036b", bitMask|address)
+
+	for i, s := range mask {
+		if s == 'X' {
+			newMask = newMask[:i] + "X" + newMask[i+1:]
+		}
+	}
+	return newMask
+}
+
+func parseMasks(mask string) (addrs []uint64, err error) {
+	addr1, err := strconv.ParseUint(strings.ReplaceAll(mask, "X", "0"), 2, 36)
+	if err != nil {
+		return
+	}
+
+	addr2, err := strconv.ParseUint(strings.ReplaceAll(mask, "X", "1"), 2, 36)
+	if err != nil {
+		return
+	}
+
+	addrs = append(addrs, addr1, addr2)
+
+	if i := strings.Index(mask, "X"); i != -1 {
+		a, err := parseMasks(mask[:i] + "0" + mask[i+1:])
+		if err != nil {
+			return nil, err
+		}
+
+		addrs = append(addrs, a...)
+
+		a2, err := parseMasks(mask[:i] + "1" + mask[i+1:])
+		if err != nil {
+			return nil, err
+		}
+
+		addrs = append(addrs, a2...)
+	}
+
+	u := map[uint64]struct{}{}
+	l := []uint64{}
+
+	for _, mask := range addrs {
+		if _, ok := u[mask]; !ok {
+			u[mask] = struct{}{}
+			l = append(l, mask)
+		}
+	}
+
+	return l, nil
+}
+
+func NewMaskPart2(mask string) (*MaskPart2, error) {
+	m := &MaskPart2{s: mask}
+
+	var err error
+	m.bitMask, err = strconv.ParseUint(strings.ReplaceAll(mask, "X", "0"), 2, 36)
+	if err != nil {
+		return nil, err
+	}
+
+	masks, err := parseMasks(mask)
+	if err != nil {
+		return nil, err
+	}
+
+	m.bitMasks = masks
+
+	return m, nil
 }
 
 type Mask struct {
@@ -74,9 +178,10 @@ func NewMask(mask string) (*Mask, error) {
 }
 
 type Instruction struct {
-	Mask    Mask
-	Address int
-	Value   int
+	Mask      Mask
+	MaskPart2 MaskPart2
+	Address   int
+	Value     int
 }
 
 func readFile(r io.Reader) ([]Instruction, error) {
@@ -84,6 +189,7 @@ func readFile(r io.Reader) ([]Instruction, error) {
 
 	program := []Instruction{}
 	var curMask *Mask
+	// var curMaskPart2 *MaskPart2
 	for scanner.Scan() {
 		txt := scanner.Text()
 
@@ -92,7 +198,14 @@ func readFile(r io.Reader) ([]Instruction, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			// maskPart2, err := NewMaskPart2(txt[7:])
+			// if err != nil {
+			// 	return nil, err
+			// }
+
 			curMask = mask
+			// curMaskPart2 = maskPart2
 		} else {
 			matches := memRegex.FindStringSubmatch(txt)
 
@@ -107,7 +220,8 @@ func readFile(r io.Reader) ([]Instruction, error) {
 			}
 
 			program = append(program, Instruction{
-				Mask:    *curMask,
+				Mask: *curMask,
+				// MaskPart2: *curMaskPart2,
 				Address: address,
 				Value:   value,
 			})

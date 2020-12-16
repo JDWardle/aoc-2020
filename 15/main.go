@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+const (
+	maxTurnPartA = 2_000
+	maxTurnPartB = 30_000_000
+)
+
 func main() {
 	file := "input.txt"
 	if len(os.Args) > 1 {
@@ -26,10 +31,11 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(partA(nums))
+	fmt.Println(partA(nums, maxTurnPartA))
+	fmt.Println(partA(nums, maxTurnPartB))
 }
 
-func partA(start []int) int {
+func partA(start []int, maxTurn int) int {
 	turns := make([]int, len(start))
 	copy(turns, start)
 	m := map[int][]int{}
@@ -38,7 +44,7 @@ func partA(start []int) int {
 		m[n] = []int{i, -1}
 	}
 
-	for i := len(start); i < 2020; i++ {
+	for i := len(start); i < maxTurn; i++ {
 		prev := turns[i-1]
 
 		prevTurns := m[prev]
@@ -69,7 +75,7 @@ func partA(start []int) int {
 		turns = append(turns, diff)
 	}
 
-	return turns[2019]
+	return turns[maxTurn-1]
 }
 
 func readFile(r io.Reader) ([]int, error) {

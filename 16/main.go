@@ -74,6 +74,26 @@ func NewTicket(line string) (*Ticket, error) {
 	return ticket, nil
 }
 
+func (t *Ticket) FieldOrder(rules map[string]Rule) []string {
+	ruleOrder := make([]string, len(rules))
+
+	for i, value := range t.Values {
+		// c := 0
+		for name, rule := range rules {
+			if rule.Valid(value) {
+				// if c > 0 {
+				// panic("multiple rules :(")
+				// }
+
+				// c++
+				ruleOrder[i] = name
+			}
+		}
+	}
+
+	return ruleOrder
+}
+
 func (t *Ticket) Validate(rules map[string]Rule) []int {
 	invalids := []int{}
 	for _, value := range t.Values {
@@ -92,8 +112,12 @@ func (t *Ticket) Validate(rules map[string]Rule) []int {
 	return invalids
 }
 
+func (t *Ticket) ValidatePart2(rules map[string]Rule) bool {
+	return len(t.Validate(rules)) == 0
+}
+
 func main() {
-	file := "input2.txt"
+	file := "input.txt"
 	if len(os.Args) > 1 {
 		file = os.Args[1]
 	}
@@ -110,6 +134,7 @@ func main() {
 	}
 
 	fmt.Println("Part 1:", partA(tickets, rules))
+	fmt.Println("Part 2:", partB(tickets, rules))
 }
 
 func partA(tickets []Ticket, rules map[string]Rule) int {
@@ -133,6 +158,112 @@ func partA(tickets []Ticket, rules map[string]Rule) int {
 	}
 
 	return c
+}
+
+func partB(tickets []Ticket, rules map[string]Rule) int {
+	// values := make([][]int, len(rules))
+	// for _, ticket := range tickets {
+	// 	if !ticket.ValidatePart2(rules) {
+	// 		continue
+	// 	}
+
+	// 	for i, v := range ticket.Values {
+	// 		if values[i] == nil {
+	// 			values[i] = []int{v}
+	// 		} else {
+	// 			values[i] = append(values[i], v)
+	// 		}
+	// 	}
+	// }
+
+	// fieldOrder := make([]string, len(rules))
+	// fields := map[string]struct{}{}
+
+	// for i, nums := range values {
+	// 	for name, rule := range rules {
+	// 		valid := true
+	// 		for _, num := range nums {
+	// 			if !rule.Valid(num) {
+	// 				valid = false
+	// 			}
+	// 		}
+
+	// 		if _, ok := fields[name]; !ok && valid && fieldOrder[i] == "" {
+	// 			fieldOrder[i] = name
+	// 			fields[name] = struct{}{}
+	// 		}
+	// 	}
+	// }
+
+	order := map[int]string{}
+
+	validTickets := []Ticket{}
+	for _, ticket := range tickets {
+		if ticket.ValidatePart2(rules) {
+			validTickets = append(validTickets, ticket)
+		}
+	}
+
+	values := make([][]int, len(rules))
+	for _, ticket := range validTickets {
+		for i, v := range ticket.Values {
+			if values[i] == nil {
+				values[i] = []int{v}
+			} else {
+				values[i] = append(values[i], v)
+			}
+		}
+	}
+
+	fieldOrder(values, rules, order)
+
+	c := 1
+	for i, num := range validTickets[0].Values {
+		if strings.HasPrefix(order[i], "departure") {
+			c *= num
+		}
+	}
+
+	return c
+}
+
+func fieldOrder(tickets [][]int, rules map[string]Rule, order map[int]string) {
+	for i, nums := range tickets {
+		if _, ok := order[i]; ok {
+			continue
+		}
+
+		validRules := map[string]int{}
+		for name, rule := range rules {
+			valid := true
+			for _, num := range nums {
+				if !rule.Valid(num) {
+					valid = false
+				}
+			}
+
+			if valid {
+				validRules[name]++
+			}
+		}
+
+		for name, valid := range validRules {
+			if valid > 1 {
+				delete(validRules, name)
+			}
+		}
+
+		if len(validRules) == 1 {
+			for name := range validRules {
+				order[i] = name
+				delete(rules, name)
+			}
+		}
+	}
+
+	if len(rules) != 0 {
+		fieldOrder(tickets, rules, order)
+	}
 }
 
 func splitByFunc(splitBy []byte) bufio.SplitFunc {

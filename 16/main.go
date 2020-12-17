@@ -74,26 +74,6 @@ func NewTicket(line string) (*Ticket, error) {
 	return ticket, nil
 }
 
-func (t *Ticket) FieldOrder(rules map[string]Rule) []string {
-	ruleOrder := make([]string, len(rules))
-
-	for i, value := range t.Values {
-		// c := 0
-		for name, rule := range rules {
-			if rule.Valid(value) {
-				// if c > 0 {
-				// panic("multiple rules :(")
-				// }
-
-				// c++
-				ruleOrder[i] = name
-			}
-		}
-	}
-
-	return ruleOrder
-}
-
 func (t *Ticket) Validate(rules map[string]Rule) []int {
 	invalids := []int{}
 	for _, value := range t.Values {

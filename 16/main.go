@@ -161,40 +161,6 @@ func partA(tickets []Ticket, rules map[string]Rule) int {
 }
 
 func partB(tickets []Ticket, rules map[string]Rule) int {
-	// values := make([][]int, len(rules))
-	// for _, ticket := range tickets {
-	// 	if !ticket.ValidatePart2(rules) {
-	// 		continue
-	// 	}
-
-	// 	for i, v := range ticket.Values {
-	// 		if values[i] == nil {
-	// 			values[i] = []int{v}
-	// 		} else {
-	// 			values[i] = append(values[i], v)
-	// 		}
-	// 	}
-	// }
-
-	// fieldOrder := make([]string, len(rules))
-	// fields := map[string]struct{}{}
-
-	// for i, nums := range values {
-	// 	for name, rule := range rules {
-	// 		valid := true
-	// 		for _, num := range nums {
-	// 			if !rule.Valid(num) {
-	// 				valid = false
-	// 			}
-	// 		}
-
-	// 		if _, ok := fields[name]; !ok && valid && fieldOrder[i] == "" {
-	// 			fieldOrder[i] = name
-	// 			fields[name] = struct{}{}
-	// 		}
-	// 	}
-	// }
-
 	order := map[int]string{}
 
 	validTickets := []Ticket{}
